@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+{% if player %}
+    <head>
+        <title>Player {{player.tag}}</title>
+    </head>
+    <body>
+    {% if board_list %}
+        <table>
+            {% for row in board_list %}
+                {% if row.col == 0 %}
+                    <tr>
+                {% endif %}
+                        <td>{{row.label}}</td>
+                {% if row.col == 9 %}
+                    </tr>
+                {% endif %}
+            {% endfor %}
+    {% endif %}
+        </table>
+        <form action="{% url 'move' player.tag %}" method="post">
+            {% csrf_token %}
+            <span>......</span><button name="button_id" value="u">&uarr;</button><br>
+            <button name="button_id" value="r">&larr;</button>
+            <span>{{player.tag}}</span>
+            <button name="button_id" value="l">&rarr;</button><br>
+            <span>......</span><button name="button_id" value="d">&darr;</button>
+        </form>
+        {% if player_list %}
+            {% for p in player_list %}
+                <p>Player {{p.tag}} Score {{p.score}}</p>
+            {% endfor %}
+        {% endif %}
+    </body>
+{% endif %}
+</html>

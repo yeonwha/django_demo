@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Greeting</title>
+    </head>
+    <body>
+        {{}}
+        <br>
+        <form action="{% url 'followup' %}" method="post">
+            {% csrf_token %}
+            <button name="button_id" value="fine">Fine</button>
+            <button name="button_id" value="not_fine">Not Fine</button>
+        </form>
+    </body>
+</html>
