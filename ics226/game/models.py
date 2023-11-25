@@ -1,6 +1,18 @@
 from django.db import models
-import random
+from django.core.exceptions import ValidationError
 
+def validate_col_range(value):
+    if value < 1 or value > 10:
+        raise ValidationError('Column out of range', code='col_value')
+
+def validate_row_range(value):
+    if value < 1 or value > 10:
+        raise ValidationError('Row out of range', 'row_value')
+
+def validate_unique_tag(value):
+    players = Player.objects.filter(tag=value)
+    if len(players) != 0:
+        raise ValidationError('Tag already taken', code='tag_duplicate')
 
 class Board(models.Model):
     """
@@ -10,8 +22,8 @@ class Board(models.Model):
     label = the description of board to tell it's empty or not. initially '.'
     value = the treasure's value if it has. initially 0
     """
-    col = models.IntegerField()
-    row = models.IntegerField()
+    col = models.IntegerField(validators=[validate_col_range])
+    row = models.IntegerField(validators=[validate_row_range])
     label = models.CharField(max_length=1)
     value = models.IntegerField()
 
@@ -41,9 +53,9 @@ class Player(models.Model):
     col = a player object's column on the board
     score = a player's score in the game
     """
-    tag = models.CharField(max_length=1)
-    row = models.IntegerField()
-    col = models.IntegerField()
+    tag = models.CharField(max_length=1, validators=[validate_unique_tag])
+    row = models.IntegerField(validators=[validate_row_range])
+    col = models.IntegerField(validators=[validate_col_range])
     score = models.IntegerField()
 
     def __str__(self):
@@ -61,3 +73,12 @@ class Player(models.Model):
         """
         model = cls(tag=tag, col=col, row=row, score=0)
         return model
+
+    @classmethod
+    def clean(self):
+        prev = Player.objects.filter(pk=self.pk)
+        if len(prev) > 0:
+            if abs(self.row - prev[0].row) > 1:
+                raise ValidationError('Row too far', code='row_distance')
+            if abs(self.col - prev[0].col) > 1:
+                raise ValidationError('Column too far', code='col_distance')

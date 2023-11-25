@@ -21,6 +21,7 @@ TREASURE_DESC = '$'
 EMPTY_TILE = '.'
 #..:*:..:*:..:*:..:*:..:*:..:*:..#
 
+@transaction.atomic
 def index(request):
     return HttpResponse('Hello world!')
 
@@ -28,6 +29,7 @@ def greet(request, name):
     return render(request, 'game/button.html', {'name': name})
     # return HttpResponse(f'Hello {name}')
 
+@transaction.atomic
 def create_board(request):
     """
     Creates a new board after deleting the previous board everytime called
@@ -44,7 +46,7 @@ def create_board(request):
 
     t = 0
     while t < TREASURE_NUM:
-        trs_val = randrange(MIN_VAL, MAX_VAL)
+        trs_val = randrange(MIN_VAL, MAX_VAL+1)
 
         x = randrange(ROW)
         y = randrange(COLUMN)
@@ -75,6 +77,7 @@ def create_board(request):
     return HttpResponse("Board is created. Go to '127.0.0.1:8000/game/' to play")
 
 import pdb
+@transaction.atomic
 def show_board(request):
     """
     Calls board and player's information and render the html by packaging them
@@ -86,6 +89,7 @@ def show_board(request):
     context = {'board_list': board_list, 'player_list': player_list}
     return render(request, 'game/board_form.html', context)
 
+@transaction.atomic
 def get_board(request):
     """
     Returns board objects in row and column order
@@ -97,6 +101,7 @@ def get_board(request):
         # print(b.row, b.col)
     return board_list
 
+@transaction.atomic
 def get_player(request, player_id: int):
     """
     Gets a specific player's object by their ID and calls the board and the players' information
@@ -111,6 +116,7 @@ def get_player(request, player_id: int):
     context = {'player': player, 'board_list': board_list, 'player_list': player_list}
     return render(request, 'game/player_form.html', context)
 
+@transaction.atomic
 def get_all_players(request):
     """
     Returns all of the existing players' objects
@@ -119,6 +125,7 @@ def get_all_players(request):
     print(player_list)
     return player_list
 
+@transaction.atomic
 def update_game(request, player, board, attempt, r, c):
     """
     Updates player and board if the player's movement is valid
@@ -131,7 +138,7 @@ def update_game(request, player, board, attempt, r, c):
     :param c: Column where player's at currently
     """
     attempt.label = player.tag
-    board.label = '.'
+    board.label = EMPTY_TILE
     player.score += attempt.value
     attempt.value = 0
     board.save()
@@ -140,6 +147,7 @@ def update_game(request, player, board, attempt, r, c):
     player.col = c
     player.save()
 
+@transaction.atomic
 def move_player(request, player_id: str):
     """
     Based on the player_id, gets their position on the board
@@ -150,36 +158,43 @@ def move_player(request, player_id: str):
     :param player_id: Player's tag to move
     """
     try:
-        player = Player.objects.filter(tag=(player_id))[0]
+        player = Player.objects.filter(tag=player_id)[0]
         r = player.row
         c = player.col
+        #print('label: ' + str(player))
         board = Board.objects.filter(row=r, col=c)[0]
         dir = request.POST['button_id']
+        #print(dir)
+        url = '/game/move/' + player_id + '/'
         match dir:
-            case 'u' :
+            case 'u':
                 if r != MIN_RANGE:
                     attempt = Board.objects.filter(row=r - 1, col=c)[0]
                     if attempt.label == EMPTY_TILE or attempt.label == TREASURE_DESC:
-                        update_game(request, player, board, attempt, r-1, c)
+                        update_game(request, player, board, attempt, r - 1, c)
+
             case 'd':
                 if r != MAX_RANGE:
-                    attempt = Board.objects.filter(row=r+1, col=c)[0]
+                    attempt = Board.objects.filter(row=r + 1, col=c)[0]
                     if attempt.label == EMPTY_TILE or attempt.label == TREASURE_DESC:
                         update_game(request, player, board, attempt, r + 1, c)
-            case 'r':
-                if c != MIN_RANGE:
-                    attempt = Board.objects.filter(row=r, col=c-1)[0]
-                    if attempt.label == EMPTY_TILE or attempt.label == TREASURE_DESC:
-                        update_game(request, player, board, attempt, r, c-1)
+
             case 'l':
-                if c != MAX_RANGE:
-                    attempt = Board.objects.filter(row=r, col=c+1)[0]
+                if c != MIN_RANGE:
+                    attempt = Board.objects.filter(row=r, col=c - 1)[0]
                     if attempt.label == EMPTY_TILE or attempt.label == TREASURE_DESC:
-                        update_game(request, player, board, attempt, r, c+1)
+                        update_game(request, player, board, attempt, r, c - 1)
+
+            case 'r':
+                if c != MAX_RANGE:
+                    attempt = Board.objects.filter(row=r, col=c + 1)[0]
+                    if attempt.label == EMPTY_TILE or attempt.label == TREASURE_DESC:
+                        update_game(request, player, board, attempt, r, c + 1)
+
     except KeyError as d:
         pass
 
-    url = '/game/display/' + player_id
+    # url = '/game/display/' + player_id
     return HttpResponseRedirect(url)
 
 class PlayerCreate(CreateView):
