@@ -163,16 +163,20 @@ def move_player(request, player_id: str):
         c = player.col
         #print('label: ' + str(player))
         board = Board.objects.filter(row=r, col=c)[0]
+        print(1234, vars(request.POST))
         dir = request.POST['button_id']
-        #print(dir)
-        url = '/game/move/' + player_id + '/'
+        print(dir)
+        url = '/game/display/' + player_id + '/'
         match dir:
             case 'u':
+                print('u start')
                 if r != MIN_RANGE:
                     attempt = Board.objects.filter(row=r - 1, col=c)[0]
+                    print('u step1')
                     if attempt.label == EMPTY_TILE or attempt.label == TREASURE_DESC:
+                        print('u strp2')
                         update_game(request, player, board, attempt, r - 1, c)
-
+                        print('u end')
             case 'd':
                 if r != MAX_RANGE:
                     attempt = Board.objects.filter(row=r + 1, col=c)[0]
@@ -192,6 +196,7 @@ def move_player(request, player_id: str):
                         update_game(request, player, board, attempt, r, c + 1)
 
     except KeyError as d:
+        print("6789", d)
         pass
 
     # url = '/game/display/' + player_id

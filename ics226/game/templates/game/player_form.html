@@ -21,9 +21,9 @@
         <form action="{% url 'move' player.tag %}" method="post">
             {% csrf_token %}
             <span>......</span><button name="button_id" value="u">&uarr;</button><br>
-            <button name="button_id" value="r">&larr;</button>
+            <button name="button_id" value="l">&larr;</button>
             <span>{{player.tag}}</span>
-            <button name="button_id" value="l">&rarr;</button><br>
+            <button name="button_id" value="r">&rarr;</button><br>
             <span>......</span><button name="button_id" value="d">&darr;</button>
         </form>
         {% if player_list %}
