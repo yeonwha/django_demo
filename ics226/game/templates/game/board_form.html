@@ -17,8 +17,8 @@
                 {% endif %}
             {% endfor %}
         </table>
-        <a href="http://127.0.0.1:8001/game/display/1">Player 1</a><br>
-        <a href="http://127.0.0.1:8001/game/display/2">Player 2</a>
+        <a href="{% url 'player' 1 %}">Player 1</a><br>
+        <a href="{% url 'player' 2 %}">Player 2</a>
         {% if player_list %}
             {% for player in player_list %}
                 <p>Player {{player.tag}} Score {{player.score}}</p>
